@@ -2,7 +2,6 @@ const socket = io('/sample-video-call.onrender.com')
 const videoGrid = document.getElementById('video-grid')
 const myPeer = new Peer(undefined, {
   host: '/sample-video-call.onrender.com',
-  port: '3001'
 })
 const myVideo = document.createElement('video')
 myVideo.muted = true
