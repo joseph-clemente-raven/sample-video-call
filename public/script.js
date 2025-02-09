@@ -1,5 +1,12 @@
-const socket = io();
+const socket = io('https://sample-video-call.onrender.com'); // ✅ Full URL
 const videoGrid = document.getElementById('video-grid');
+
+const myPeer = new Peer(undefined, {
+  host: 'sample-video-call.onrender.com', // ✅ Corrected host
+  secure: true, // ✅ Required for HTTPS
+  port: 443, // ✅ Required for HTTPS
+});
+
 const myVideo = document.createElement('video');
 myVideo.muted = true;
 const peers = {};
@@ -10,37 +17,41 @@ navigator.mediaDevices.getUserMedia({
 }).then(stream => {
   addVideoStream(myVideo, stream);
 
+  myPeer.on('call', call => {
+    call.answer(stream);
+    const video = document.createElement('video');
+    call.on('stream', userVideoStream => {
+      addVideoStream(video, userVideoStream);
+    });
+  });
+
   socket.on('user-connected', userId => {
-    const peerConnection = new RTCPeerConnection({
-      iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
-    });
-
-    stream.getTracks().forEach(track => peerConnection.addTrack(track, stream));
-
-    peerConnection.ontrack = event => {
-      const video = document.createElement('video');
-      addVideoStream(video, event.streams[0]);
-    };
-
-    peerConnection.onicecandidate = event => {
-      if (event.candidate) {
-        socket.emit('signal', { userId, signal: event.candidate });
-      }
-    };
-
-    socket.on('signal', ({ userId, signal }) => {
-      peerConnection.addIceCandidate(new RTCIceCandidate(signal));
-    });
-
-    peers[userId] = peerConnection;
+    connectToNewUser(userId, stream);
   });
-
-  socket.on('user-disconnected', userId => {
-    if (peers[userId]) peers[userId].close();
-  });
-
-  socket.emit('join-room', ROOM_ID, socket.id);
 });
+
+socket.on('user-disconnected', userId => {
+  if (peers[userId]) peers[userId].close();
+});
+
+myPeer.on('open', id => {
+  socket.emit('join-room', ROOM_ID, id);
+});
+
+function connectToNewUser(userId, stream) {
+  const call = myPeer.call(userId, stream);
+  const video = document.createElement('video');
+  
+  call.on('stream', userVideoStream => {
+    addVideoStream(video, userVideoStream);
+  });
+
+  call.on('close', () => {
+    video.remove();
+  });
+
+  peers[userId] = call;
+}
 
 function addVideoStream(video, stream) {
   video.srcObject = stream;
