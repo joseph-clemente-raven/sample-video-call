@@ -1,0 +1,27 @@
+.notification-container {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 10px;
+    border: 2px solid black;
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+  }
+  
+  .answer-button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 5px;
+  }
+  
+  .answer-button:hover {
+    background-color: #0056b3;
+  }
+  
