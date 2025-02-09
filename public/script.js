@@ -1,12 +1,6 @@
 const socket = io('https://sample-video-call.onrender.com'); // ✅ Full URL
 const videoGrid = document.getElementById('video-grid');
 
-const myPeer = new Peer(undefined, {
-  host: 'sample-video-call.onrender.com', // ✅ Corrected host
-  secure: true, // ✅ Required for HTTPS
-  port: 443, // ✅ Required for HTTPS
-});
-
 const myVideo = document.createElement('video');
 myVideo.muted = true;
 const peers = {};
@@ -17,40 +11,48 @@ navigator.mediaDevices.getUserMedia({
 }).then(stream => {
   addVideoStream(myVideo, stream);
 
-  myPeer.on('call', call => {
-    call.answer(stream);
-    const video = document.createElement('video');
-    call.on('stream', userVideoStream => {
-      addVideoStream(video, userVideoStream);
-    });
-  });
+  socket.emit('join-room', ROOM_ID);
 
   socket.on('user-connected', userId => {
     connectToNewUser(userId, stream);
   });
-});
 
-socket.on('user-disconnected', userId => {
-  if (peers[userId]) peers[userId].close();
-});
+  socket.on('user-disconnected', userId => {
+    if (peers[userId]) {
+      peers[userId].destroy();
+      delete peers[userId];
+    }
+  });
 
-myPeer.on('open', id => {
-  socket.emit('join-room', ROOM_ID, id);
+  socket.on('signal', ({ userId, signal }) => {
+    if (peers[userId]) {
+      peers[userId].signal(signal);
+    }
+  });
 });
 
 function connectToNewUser(userId, stream) {
-  const call = myPeer.call(userId, stream);
-  const video = document.createElement('video');
-  
-  call.on('stream', userVideoStream => {
+  const peer = new SimplePeer({
+    initiator: true,
+    trickle: false,
+    stream: stream
+  });
+
+  peer.on('signal', signal => {
+    socket.emit('signal', { userId, signal });
+  });
+
+  peer.on('stream', userVideoStream => {
+    const video = document.createElement('video');
     addVideoStream(video, userVideoStream);
   });
 
-  call.on('close', () => {
-    video.remove();
+  peer.on('close', () => {
+    peer.destroy();
+    delete peers[userId];
   });
 
-  peers[userId] = call;
+  peers[userId] = peer;
 }
 
 function addVideoStream(video, stream) {
