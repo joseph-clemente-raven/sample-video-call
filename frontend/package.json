@@ -2,6 +2,7 @@
   "name": "frontend",
   "version": "0.1.0",
   "private": true,
+  "proxy": "https://sample-video-call.onrender.com",
   "dependencies": {
     "@mui/material": "^6.4.3",
     "cra-template": "1.2.0",
