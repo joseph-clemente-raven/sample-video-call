@@ -1,9 +1,10 @@
 const socket = io('/')
 const videoGrid = document.getElementById('video-grid')
 const myPeer = new Peer(undefined, {
-  host: 'https://sample-video-call.onrender.com/',
-  port: '443',
-  secure: true
+    host: 'sample-video-call.onrender.com', // Remove extra "https"
+    path: '/peerjs', // Ensure correct path
+    secure: true, // Necessary for HTTPS
+    port: 443, // Optional (default for HTTPS)
 })
 const myVideo = document.createElement('video')
 myVideo.muted = true
