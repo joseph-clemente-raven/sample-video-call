@@ -1,7 +1,7 @@
 {
   "name": "frontend",
   "version": "0.1.0",
-  "private": true,
+  "private": false,
   "proxy": "https://sample-video-call.onrender.com",
   "dependencies": {
     "@mui/material": "^6.4.3",
