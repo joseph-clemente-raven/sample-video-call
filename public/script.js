@@ -3,7 +3,7 @@ const socket = io('https://sample-video-call.onrender.com'); // Use full URL for
 const videoGrid = document.getElementById('video-grid');
 const myPeer = new Peer(undefined, {
     host: 'sample-video-call.onrender.com',
-    path: '/peerjs', // Ensure correct path
+    path: '/', // Ensure correct path
     secure: true, // Required for HTTPS
 });
 
